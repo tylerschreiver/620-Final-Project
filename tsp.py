@@ -87,5 +87,5 @@ def plotGraph(grid):
 
   
 # Initialize 100 x 100 Grid with 10 cities
-grid = Grid(100, 5)
+grid = Grid(100, 10)
 plotGraph(grid)
