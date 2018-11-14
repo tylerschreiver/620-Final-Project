@@ -7,23 +7,19 @@ class Grid:
   gridSize = 0
   tourSize = 0
   cities = []
-  edges = []
+  costMatrix = [[]]
   def __init__(self, n, numCities):
     self.gridSize = n
     self.tourSize = numCities
     for i in range(0, numCities):
       self.cities = addCity(self.cities, self.gridSize, i)
-    
-    #there shouldn't be any repeat edges with shortenInnerLoop
-    shortenInnerLoop = 0
-    for j in range(0, numCities):
-      k = numCities-1
-      while k is not shortenInnerLoop:
-        if j is not k:
-          self.edges.append(Edge(self.cities[j], self.cities[k]))
-        k -= 1
-      shortenInnerLoop += 1
-    
+    self.createCostMatrix()
+
+  def createCostMatrix(self):
+    self.costMatrix = [[0 for i in range(self.tourSize)] for x in range(self.tourSize)]
+    for i in range(self.tourSize):
+      for j in range(self.tourSize):
+        self.costMatrix[i][j] = distance(self.cities[i], self.cities[j])
 
 class City:
   x = 0
@@ -35,20 +31,6 @@ class City:
     self.index = i
   def __str__(self):
     return "(" + str(self.x) + ", " + str(self.y) + ")"
-
-# will be used to hold pheremone levels
-# second thought, might not need this guy but I'll leave him here
-class Edge:
-  city1 = None
-  city2 = None
-  pheremone = 0
-  def __init__(self, c1, c2):
-    self.city1 = c1
-    self.city2 = c2
-  def distance(self):
-    return distance(self.city1, self.city2)
-  def __str__(self):
-    return "[ " + str(self.city1) + ", " + str(self.city2) + " ]"
 
 def distance(city1, city2):
   return math.sqrt( math.pow((city2.x-city1.x), 2) + math.pow((city2.y-city1.y), 2) )
@@ -91,11 +73,12 @@ def plotGraph(grid, path):
     plt.plot(x,y)
   plt.show()
 
-  
+ 
 # Initialize 100 x 100 Grid with 10 cities
 grid = Grid(100, 10)
 
-aco = ACO(grid, 1, 1)
-path = aco.ant1Tour()
+aco = ACO(grid, 10, 20, .5, .5, .5)
+path = aco.getBestPath()
+
 
 plotGraph(grid, path)

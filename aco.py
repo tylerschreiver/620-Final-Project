@@ -1,76 +1,94 @@
-'''
-http://staff.washington.edu/paymana/swarm/stutzle99-eaecs.pdf
-equations broken down from this research paper
-
-α = how much we favor pheremone values
-β = how much we favor hueristic values
-
-τ = pheremone value thingy
-η = hueristic value = 1 / (distance(i,j))
-N = set of cities ant has not visited
-
-p(k)(i,j) = probability ant k will leave city i and go to city j (assuming j is in N)
-
-  ((τ(i,j) ^ α) * ((η(i,j) ^ β))  # numerator
-= ------------------------------------------ # division line
-  SUM all cities l in N ((τ(i,l) ^ α) * ((η(i,l) ^ β))   # denominator
-
-basically the denominator is the sum of all numerators if that makes sense
-This shit is used for constructing the tour and guiding our ants
-
-Onto the pheremone stuff
-
-t = current generation
-ρ = pheremone trail evaportation rate   0 < ρ <= 1
-L(k) = length of ant k's tour
-
-τ(i,j)(t+1) = (1 - ρ) * τ(i,j)(t) + SUM all ants k ( Δτ(k)(i,j)(t)  )
-
-where
-Δτ(k)(i,j)(t) = 1 / L(k)(t)  (Each ants pheremone strength is determined by the fitness of their tour)
-if ant k took path (i,j)
-and
-Δτ(k)(i,j)(t) = 0
-if ant k did not take path (i,j)
-
-Basically, the pheremone strength for the next generation is equal to 
-  (modifier*curr pheremone strength) + (sum of fitness of all ants who took path (i,j))
-
-'''
 import random
+import math
 
 class ACO:
   grid = None
+  alpha = 0
+  beta = 0
+  rho = 0
   pheremones = [[]]
   genCurrent = 0
   genTotal = 0
   ants = []
-  def __init__(self, graph, generations, numAnts):
+  def __init__(self, graph, generations, numAnts, a, b, r):
     self.grid = graph
     self.genTotal = generations
-    for i in range(numAnts): self.ants.append(Ant(i))
-    self.dispatchAnts()
+    self.alpha = a
+    self.beta = b
+    self.rho = r
+    self.pheremones = [[1 for i in range(graph.tourSize)] for j in range(graph.tourSize)]
+    for i in range(numAnts): self.ants.append(Ant(i, self))
+    for j in range(generations):
+      print(j)
+      self.dispatchAnts()
+      self.updatePheremones()
 
   def dispatchAnts(self):
     for ant in self.ants:
+      ant.path = []
+      ant.pathLength = 0
       for i in range(self.grid.tourSize):
-        ant.selectCity(self.grid.cities)
+        ant.selectCity()
+        ant.findProbabilities()
       ant.goHome()
 
-  def ant1Tour(self):
-    return self.ants[0].path
+  def updatePheremones(self):
+    newPheremones = [[0 for i in range(self.grid.tourSize)] for j in range(self.grid.tourSize)]
+    for i in range(self.grid.tourSize):
+      for j in range(self.grid.tourSize):
+        totalFitnessOfAntsUsingThisEdge = 0
+        for ant in self.ants:
+          totalFitnessOfAntsUsingThisEdge += ant.fitnessForAntForEdge(i, j)
+        newPheremones[i][j] = (1-self.rho) * self.pheremones[i][j] + totalFitnessOfAntsUsingThisEdge
+    self.pheremones = newPheremones
+
+  def getBestPath(self):
+    bestAnt = self.ants[0]
+    for i in range(1, len(self.ants)):
+      if (self.ants[i].pathLength < bestAnt.pathLength): bestAnt = self.ants[i]
+    return bestAnt.path
+
 
 class Ant:
   index = 0
   path = []
+  pathLength = 0
+  aco = None
   currentCity = None
-  def __init__(self, i): 
+  probability = [[]]
+  def __init__(self, i, antColony): 
     self.index = i
+    self.aco = antColony
+    self.probability = [[0 for i in range(self.aco.grid.tourSize)] for j in range(self.aco.grid.tourSize)]
 
-  def selectCity(self, cities):
+  def selectCity(self):
     # availableCities = cities - self.path
-    availableCities = [x for x in cities if x not in self.path]
-    self.path.append(availableCities[random.randint(0, len(availableCities) - 1)])
-  
+    availableCities = [x for x in self.aco.grid.cities if x not in self.path]
+    self.currentCity = availableCities[random.randint(0, len(availableCities) - 1)] 
+    self.path.append(self.currentCity)
+    self.pathLength += self.aco.grid.costMatrix[self.path[len(self.path) - 1].index][self.path[len(self.path) - 2].index]
+
+  def findProbabilities(self):
+    availableCities = [x for x in self.aco.grid.cities if x not in self.path]
+    for i in range(self.aco.grid.tourSize):
+      denominator = 0
+      for l in range(len(availableCities)):
+        if availableCities[l].index is not i:
+          denominator += math.pow(self.aco.pheremones[i][availableCities[l].index], self.aco.alpha) * math.pow(1 / self.aco.grid.costMatrix[i][availableCities[l].index], self.aco.beta) 
+      if denominator is not 0:
+        for j in range(self.aco.grid.tourSize):
+          if i is not j:
+            numerator = math.pow(self.aco.pheremones[i][j], self.aco.alpha) * math.pow(1 / self.aco.grid.costMatrix[i][j], self.aco.beta)
+            self.probability[i][j] = (numerator / denominator)
+
   def goHome(self):
     self.path.append(self.path[0])
+
+  def fitnessForAntForEdge(self, i, j):
+    hasEdge = False
+    for i in range(len(self.path)-1):
+      if ((self.path[i].index == i and self.path[i+1].index == j) or
+          (self.path[i].index == j and self.path[i+1].index == i)): hasEdge = True
+    if hasEdge: return 1 / self.pathLength
+    else: return 0
+
