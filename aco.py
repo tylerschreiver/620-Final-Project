@@ -37,3 +37,40 @@ Basically, the pheremone strength for the next generation is equal to
   (modifier*curr pheremone strength) + (sum of fitness of all ants who took path (i,j))
 
 '''
+import random
+
+class ACO:
+  grid = None
+  pheremones = [[]]
+  genCurrent = 0
+  genTotal = 0
+  ants = []
+  def __init__(self, graph, generations, numAnts):
+    self.grid = graph
+    self.genTotal = generations
+    for i in range(numAnts): self.ants.append(Ant(i))
+    self.dispatchAnts()
+
+  def dispatchAnts(self):
+    for ant in self.ants:
+      for i in range(self.grid.tourSize):
+        ant.selectCity(self.grid.cities)
+      ant.goHome()
+
+  def ant1Tour(self):
+    return self.ants[0].path
+
+class Ant:
+  index = 0
+  path = []
+  currentCity = None
+  def __init__(self, i): 
+    self.index = i
+
+  def selectCity(self, cities):
+    # availableCities = cities - self.path
+    availableCities = [x for x in cities if x not in self.path]
+    self.path.append(availableCities[random.randint(0, len(availableCities) - 1)])
+  
+  def goHome(self):
+    self.path.append(self.path[0])

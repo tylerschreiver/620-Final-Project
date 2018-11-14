@@ -1,15 +1,18 @@
 import random
 import math
 import matplotlib.pyplot as plt
+from aco import ACO
 
 class Grid:
-  size = 0
+  gridSize = 0
+  tourSize = 0
   cities = []
   edges = []
   def __init__(self, n, numCities):
-    self.size = n
+    self.gridSize = n
+    self.tourSize = numCities
     for i in range(0, numCities):
-      self.cities = addCity(self.cities, self.size, i)
+      self.cities = addCity(self.cities, self.gridSize, i)
     
     #there shouldn't be any repeat edges with shortenInnerLoop
     shortenInnerLoop = 0
@@ -34,6 +37,7 @@ class City:
     return "(" + str(self.x) + ", " + str(self.y) + ")"
 
 # will be used to hold pheremone levels
+# second thought, might not need this guy but I'll leave him here
 class Edge:
   city1 = None
   city2 = None
@@ -49,6 +53,7 @@ class Edge:
 def distance(city1, city2):
   return math.sqrt( math.pow((city2.x-city1.x), 2) + math.pow((city2.y-city1.y), 2) )
 
+# no repeat cities....just in case
 def checkValidCoords(x, y, cities):
   isValid = True
   for city in cities:
@@ -67,7 +72,8 @@ def addCity(cities,size, index):
   cities.append(City(x, y, index))
   return cities
 
-def plotGraph(grid):
+# currently plots a rando path
+def plotGraph(grid, path):
   x = []
   y = []
   for city in grid.cities:
@@ -75,17 +81,21 @@ def plotGraph(grid):
     y.append(city.y)
   plt.scatter(x,y)
 
-  for edge in grid.edges:
+  for i in range(len(path)-1):
     x = []
-    x.append(edge.city1.x)
-    x.append(edge.city2.x)
+    x.append(path[i].x)
+    x.append(path[i+1].x)
     y = []
-    y.append(edge.city1.y)
-    y.append(edge.city2.y)
+    y.append(path[i].y)
+    y.append(path[i+1].y)
     plt.plot(x,y)
   plt.show()
 
   
 # Initialize 100 x 100 Grid with 10 cities
 grid = Grid(100, 10)
-plotGraph(grid)
+
+aco = ACO(grid, 1, 1)
+path = aco.ant1Tour()
+
+plotGraph(grid, path)
