@@ -59,14 +59,32 @@ class Ant:
   def __init__(self, i, antColony): 
     self.index = i
     self.aco = antColony
-    self.probability = [[0 for i in range(self.aco.grid.tourSize)] for j in range(self.aco.grid.tourSize)]
+    # ant starts at a random home
+    self.currentCity = self.aco.grid.cities[random.randint(0, len(self.aco.grid.cities) - 1)]
+    self.path.append(self.currentCity)
+    self.probability = [[(1/self.aco.grid.tourSize) for i in range(self.aco.grid.tourSize)] for j in range(self.aco.grid.tourSize)]
 
   def selectCity(self):
     # availableCities = cities - self.path
     availableCities = [x for x in self.aco.grid.cities if x not in self.path]
+    prob = self.probability[self.currentCity.index]
+    odds = [0 for i in range(len(availableCities))]
+    odds.append(prob[0])
+    for i in range(1, len(availableCities) - 1):
+      odds[i] = odds[i-1] + prob[availableCities[i].index]
 
-    # TODO not random city
-    self.currentCity = availableCities[random.randint(0, len(availableCities) - 1)] 
+
+    
+    randVal = random.random()
+    index = -1
+    for i in range(len(odds) - 1): 
+      if odds[i] > randVal:
+        index = availableCities[i].index
+        break
+    if index == -1: index = availableCities[len(availableCities) - 1].index
+    
+    print(index)
+    self.currentCity = self.aco.grid.cities[index] #availableCities[random.randint(0, len(availableCities) - 1)] 
     self.path.append(self.currentCity)
     self.pathLength += self.aco.grid.costMatrix[self.path[len(self.path) - 1].index][self.path[len(self.path) - 2].index]
 
@@ -91,6 +109,6 @@ class Ant:
     for i in range(len(self.path)-1):
       if ((self.path[i].index == i and self.path[i+1].index == j) or
           (self.path[i].index == j and self.path[i+1].index == i)): hasEdge = True
-    if hasEdge: return 1 / self.pathLength
+    if hasEdge and self.pathLength != 0: return 1 / self.pathLength
     else: return 0
 

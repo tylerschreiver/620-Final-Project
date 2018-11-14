@@ -77,7 +77,9 @@ def plotGraph(grid, path):
 # Initialize 100 x 100 Grid with 15 cities
 grid = Grid(100, 15)
 
-aco = ACO(grid, 100, 15, .5, .5, .5)
+# ACO (grid, numGenerations, numAnts, alpha, beta, rho)
+aco = ACO(grid, 10, 5, .5, .5, .5)
+#aco = ACO(grid, 1, 1, .5, .5, .5)
 path = aco.getBestPath()
 
 
