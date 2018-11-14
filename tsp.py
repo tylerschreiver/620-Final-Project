@@ -74,10 +74,10 @@ def plotGraph(grid, path):
   plt.show()
 
  
-# Initialize 100 x 100 Grid with 10 cities
-grid = Grid(100, 10)
+# Initialize 100 x 100 Grid with 15 cities
+grid = Grid(100, 15)
 
-aco = ACO(grid, 10, 20, .5, .5, .5)
+aco = ACO(grid, 100, 15, .5, .5, .5)
 path = aco.getBestPath()
 
 
