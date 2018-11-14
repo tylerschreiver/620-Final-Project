@@ -64,6 +64,8 @@ class Ant:
   def selectCity(self):
     # availableCities = cities - self.path
     availableCities = [x for x in self.aco.grid.cities if x not in self.path]
+
+    # TODO not random city
     self.currentCity = availableCities[random.randint(0, len(availableCities) - 1)] 
     self.path.append(self.currentCity)
     self.pathLength += self.aco.grid.costMatrix[self.path[len(self.path) - 1].index][self.path[len(self.path) - 2].index]
