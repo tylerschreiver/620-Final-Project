@@ -19,7 +19,7 @@ class ACO:
     self.pheremones = [[1 for i in range(graph.tourSize)] for j in range(graph.tourSize)]
     for i in range(numAnts): self.ants.append(Ant(i, self))
     for j in range(generations):
-      print(j)
+      #print(j)
       self.dispatchAnts()
       self.updatePheremones()
 
@@ -39,7 +39,8 @@ class ACO:
         totalFitnessOfAntsUsingThisEdge = 0
         for ant in self.ants:
           totalFitnessOfAntsUsingThisEdge += ant.fitnessForAntForEdge(i, j)
-        newPheremones[i][j] = (1-self.rho) * self.pheremones[i][j] + totalFitnessOfAntsUsingThisEdge
+        # newPheremones[i][j] = (1-self.rho) * self.pheremones[i][j] + totalFitnessOfAntsUsingThisEdge
+        newPheremones[i][j] = self.rho * self.pheremones[i][j] + totalFitnessOfAntsUsingThisEdge
     self.pheremones = newPheremones
 
   def getBestPath(self):
@@ -83,7 +84,7 @@ class Ant:
         break
     if index == -1: index = availableCities[len(availableCities) - 1].index
     
-    print(index)
+    #print(index)
     self.currentCity = self.aco.grid.cities[index] #availableCities[random.randint(0, len(availableCities) - 1)] 
     self.path.append(self.currentCity)
     self.pathLength += self.aco.grid.costMatrix[self.path[len(self.path) - 1].index][self.path[len(self.path) - 2].index]
@@ -96,6 +97,7 @@ class Ant:
         if availableCities[l].index is not i:
           denominator += math.pow(self.aco.pheremones[i][availableCities[l].index], self.aco.alpha) * math.pow(1 / self.aco.grid.costMatrix[i][availableCities[l].index], self.aco.beta) 
       if denominator is not 0:
+        print(denominator)
         for j in range(self.aco.grid.tourSize):
           if i is not j:
             numerator = math.pow(self.aco.pheremones[i][j], self.aco.alpha) * math.pow(1 / self.aco.grid.costMatrix[i][j], self.aco.beta)
