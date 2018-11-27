@@ -63,6 +63,7 @@ def plotGraph(grid, path):
     y.append(city.y)
   plt.scatter(x,y)
 
+  plt.scatter(path[0].x, path[0].y, c='c')
   for i in range(len(path)-1):
     x = []
     x.append(path[i].x)
@@ -71,15 +72,17 @@ def plotGraph(grid, path):
     y.append(path[i].y)
     y.append(path[i+1].y)
     plt.plot(x,y)
+  plt.scatter(path[len(path)-1].x, path[len(path)-1].y, c='r')
   plt.show()
 
  
 # Initialize 100 x 100 Grid with 15 cities
-grid = Grid(100, 40)
+grid = Grid(100, 50)
 
 # ACO (grid, numGenerations, numAnts, alpha, beta, rho)
-#aco = ACO(grid, 100, 10, .5, 10, 2)
-aco = ACO(grid, 10, 10, .5, 10, 2)
+# aco = ACO(grid, 20, 20, .5, 10, 2)
+aco = ACO(grid, 30, 20, 5, 15, .1)
+
 
 path = aco.getBestPath()
 
